@@ -23,17 +23,18 @@ const DesktopNavbar = () => {
     if (!isSignedIn) {
         return <div className='hidden md:flex'>
             <ModeToggle />
+            <Button variant="ghost" className="border flex items-center ms-3" asChild>
+                <Link href="/">
+                    <Home className="w-4 h-4" />
+                    <span className="hidden lg:inline">Home</span>
+                </Link>
+            </Button>
             <SignedOut>
                 <SignInButton mode='modal'>
                     <Button variant='ghost' className='border cursor-pointer mx-3'>
                         Sign In
                     </Button>
                 </SignInButton>
-                <SignUpButton mode='modal'>
-                    <Button variant='ghost' className='border cursor-pointer'>
-                        Sign up
-                    </Button>
-                </SignUpButton>
             </SignedOut>
         </div>;
     }
