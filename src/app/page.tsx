@@ -1,13 +1,6 @@
-"use client";
-import React from 'react'
 
-
-const page = () => {
+export default async function Home() {
     return (
-        <div>
-            Home Page Content
-        </div>
+        <div>Home</div>
     )
 }
-
-export default page
