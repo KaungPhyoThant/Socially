@@ -22,3 +22,7 @@ export async function createPost(content:string , imageUrl:string){
         return {success:false,error:"Failed to create post"};
     }
 }
+
+export async function getPosts(){
+
+}
