@@ -35,6 +35,7 @@ export async function getPosts(){
                         name:true,
                         image:true,
                         username:true,
+                        id:true
                     }
                 },
                 comments:{
@@ -129,4 +130,76 @@ export async function toggleLike(postId:string) {
         console.log("Failed to toggle like:",error);
         return {success:false,error:"Failed to toggle like."}
     }
+}
+
+export async function createComment(postId:string , content:string){
+try {
+    const userId = await getDbUserId();
+    if(!userId) return;
+    if(!content) throw new Error("Content is required.");
+
+    const post = await prisma.post.findUnique({
+        where:{
+            id:postId
+        },
+        select:{
+            authorId:true
+        },
+    })
+
+    if(!post) throw new Error("Post not found.");
+
+    const [comment] = await prisma.$transaction(async(tx) => {
+
+        const newComment = await tx.comment.create({
+            data:{
+                content,
+                authorId:userId,
+                postId,
+            }
+        })
+        if(post.authorId !== userId) {
+            await tx.notification.create({
+                data:{
+                    type:"COMMENT",
+                    userId:post.authorId,
+                    creatorId:userId,
+                    postId,
+                    commentId:newComment.id
+                }
+            })
+        }
+        return [newComment];
+    });
+    revalidatePath(`/`);
+    return {success:true,comment};
+} catch (error) {
+    console.log("Failed to create comment:",error);
+    return {success:false,error:"Failed to create comment."}
+}
+}
+
+export async function deletePost(postId:string){
+    try {
+        const userId = await getDbUserId();
+
+        const post = await prisma.post.findUnique({
+            where:{id:postId},
+            select:{authorId:true},
+        });
+
+        if(!post) throw new Error("Post not found.");
+        if(post.authorId !== userId) throw new Error("Unauthorized - no delete permission.");
+
+        await prisma.post.delete({
+            where:{id:postId}
+        });
+
+        revalidatePath("/");
+        return {success:true};
+    } catch (error) {
+        console.log("Failed to delete post:",error);
+        return {success:false,error:"Failed to delete post."}
+    }
+
 }
